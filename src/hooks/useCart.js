@@ -50,7 +50,7 @@ export default function useCart() {
   };
 
   /**
-   * Remove item completely from cart
+   * Remove item completely from cart..
    */
   const remove = (id) => {
     setCart(prev => {
