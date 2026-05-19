@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MENU, CATEGORIES } from "./data/menu";
+//import { MENU, CATEGORIES } from "./data/menu";
 import useCart from "./hooks/useCart";
 
 import SearchBar from "./components/Filters/SearchBar";
@@ -17,6 +17,7 @@ import CustomerForm from "./components/Customer/CustomerForm";
  */
 export default function App() {
 
+
   // Search + filter state
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -33,6 +34,10 @@ export default function App() {
 
   // Cart logic from custom hook
   const {
+    products,
+    categories,
+    loading,
+    error,
     cartItems,
     subtotal,
     add,
@@ -41,12 +46,15 @@ export default function App() {
     clearCart
   } = useCart();
 
+
+  
+
   /**
    * Filter menu based on search + category
    * Memoized for performance
    */
   const filteredMenu = useMemo(() => {
-    return MENU.filter(item => {
+    return products.filter(item => {
       const matchSearch = item.name
         .toLowerCase()
         .includes(search.toLowerCase());
@@ -56,7 +64,7 @@ export default function App() {
 
       return matchSearch && matchCategory;
     });
-  }, [search, category]);
+  }, [search, category, products]);
 
   /**
    * Handles order placement
@@ -82,6 +90,18 @@ export default function App() {
     setTimeout(() => setOrderId(null), 5000);
   };
 
+  // debug logs
+  console.log("products:",products);
+  console.log("filteredMenu:",filteredMenu);
+  console.log("category",category);
+
+  if (loading) {
+  return <h2>Loading...</h2>;
+}
+if (error) {
+  return <h2>Error: {error}</h2>;
+}
+
   return (
     <div style={{ padding: 20 }}>
       <h1>🏨 Hotel Ordering System</h1>
@@ -93,7 +113,7 @@ export default function App() {
       <SearchBar search={search} setSearch={setSearch} />
 
       <CategoryFilter
-        categories={CATEGORIES}
+        categories={categories}
         selected={category}
         onSelect={setCategory}
       />

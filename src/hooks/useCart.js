@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import { MENU } from "../data/menu";
+import { useState, useMemo ,useEffect} from "react";
+import { getProducts } from "../api/productApi";
+// import { MENU } from "../data/menu";
 
 /**
  * Custom hook to encapsulate all cart-related logic.
@@ -7,8 +8,57 @@ import { MENU } from "../data/menu";
  */
 export default function useCart() {
 
+  const [products, setProducts] = useState([]);
+   /**
+   * Loading + error states
+   */
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState(null);
+
+
   // Cart state: { itemId: quantity }
   const [cart, setCart] = useState({});
+
+    /**
+     * Fetch products on component mount
+     */
+    useEffect(() => {
+  
+      async function loadProducts() {
+  
+        try {
+  
+          setLoading(true);
+  
+          const data = await getProducts();
+  
+          setProducts(data);
+  
+        } catch (err) {
+  
+          setError(err.message);
+  
+        } finally {
+  
+          setLoading(false);
+        }
+      }
+  
+      loadProducts();
+  
+    }, []);
+
+
+  const categories = useMemo(() => {
+
+    const uniqueCategories = new Set(
+      products.map(product => product.category.toLowerCase())
+    );
+
+    return ["All", ...uniqueCategories];
+
+  }, [products]);
 
   /**
    * Convert MENU array into a lookup map:
@@ -16,8 +66,8 @@ export default function useCart() {
    * This avoids expensive .find() calls repeatedly
    */
   const menuMap = useMemo(() => {
-    return Object.fromEntries(MENU.map(m => [m.id, m]));
-  }, []);
+    return Object.fromEntries(products.map(m => [m.id, m]));
+  }, [products]);
 
   /**
    * Convert cart object into usable array for UI
@@ -42,7 +92,7 @@ export default function useCart() {
    * Add item to cart
    * If already exists → increment quantity
    */
-  const add = (id) => {
+  const addItemToCart = (id) => {
     setCart(prev => ({
       ...prev,
       [id]: (prev[id] || 0) + 1
@@ -75,10 +125,26 @@ export default function useCart() {
   const clearCart = () => setCart({});
 
   return {
+
+    /**
+   * Product state
+   */
+    products,
+    categories,
+    loading,
+    error,
+
+    /**
+    * Cart state
+    */
     cart,
     cartItems,
     subtotal,
-    add,
+
+    /**
+     * Actions
+     */
+    add: addItemToCart,
     remove,
     updateQty,
     clearCart
