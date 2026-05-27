@@ -7,6 +7,7 @@ import CategoryFilter from "./components/Filters/CategoryFilter";
 import MenuList from "./components/Menu/MenuList";
 import Cart from "./components/Cart/Cart";
 import CustomerForm from "./components/Customer/CustomerForm";
+import CheckoutModal from "./components/Cart/CheckoutModal";
 
 /**
  * Root component (Container)
@@ -15,6 +16,7 @@ import CustomerForm from "./components/Customer/CustomerForm";
  * - Business logic
  * - Passing props to child components
  */
+
 export default function App() {
 
 
@@ -28,6 +30,9 @@ export default function App() {
     room: "",
     phone: "",
   });
+
+  //
+  const [showCheckout, setShowCheckout] = useState(false);
 
   // Order success state
   const [orderId, setOrderId] = useState(null);
@@ -45,9 +50,6 @@ export default function App() {
     updateQty,
     clearCart
   } = useCart();
-
-
-  
 
   /**
    * Filter menu based on search + category
@@ -69,7 +71,7 @@ export default function App() {
   /**
    * Handles order placement
    */
-  const placeOrder = () => {
+  const placeOrder2 = () => {
     if (!cartItems.length) return;
 
     // Basic validation
@@ -88,6 +90,27 @@ export default function App() {
 
     // Auto-hide success message
     setTimeout(() => setOrderId(null), 5000);
+  };
+
+  const placeOrder = (customerData) => {
+  if (!cartItems.length) return;
+
+  const id = crypto.randomUUID();
+
+  setCustomer(customerData);
+  setOrderId(id);
+
+  clearCart();
+  setShowCheckout(false);
+
+  setTimeout(() => setOrderId(null), 5000);
+};
+
+
+  const openCheckout = () => {
+    if (!cartItems.length) return;
+
+    setShowCheckout(true);
   };
 
   // debug logs
@@ -132,15 +155,30 @@ if (error) {
           subtotal={subtotal}
           onUpdate={updateQty}
           onRemove={remove}
-          onPlaceOrder={placeOrder}
+          //onPlaceOrder={placeOrder}
+          onPlaceOrder={openCheckout}
         />
       </div>
 
       {/* Customer info */}
-      <CustomerForm
+      
+      {/* <CustomerForm
         customer={customer}
         setCustomer={setCustomer}
-      />
+      /> */}
+
+            {/* Checkout Popup */}
+      {showCheckout && (
+        <CheckoutModal
+
+          // Close popup
+          onClose={() => setShowCheckout(false)}
+
+          // Submit order
+          onSubmit={placeOrder}
+        />
+      )}
+
     </div>
   );
 }
